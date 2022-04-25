@@ -39,15 +39,20 @@ public class BattleMainManagerScript : MonoBehaviour {
                     dropChance: 0.2f);
   }
 
-  private readonly List<EnemyConfig> enemyConfigs = new() {
-    MakeScoutMech(WeaponConfig.TWO_SHOT_SHOTGUN),
-    MakeScoutMech(WeaponConfig.FLAMER),
-    MakeHeavyMech(WeaponConfig.RIFLE),
-    MakeHeavyMech(WeaponConfig.MISSILE)
+  private readonly List<List<EnemyConfig>> enemyConfigs = new() {
+    new() { MakeScoutMech(WeaponConfig.TWO_SHOT_SHOTGUN) },
+    new() { MakeScoutMech(WeaponConfig.FLAMER) },
+    new() { MakeHeavyMech(WeaponConfig.RIFLE) },
+    new() { MakeHeavyMech(WeaponConfig.MISSILE) },
+    new() { MakeScoutMech(WeaponConfig.TWO_SHOT_SHOTGUN) ,
+            MakeScoutMech(WeaponConfig.TWO_SHOT_SHOTGUN),
+            MakeScoutMech(WeaponConfig.FLAMER) }
+
   };
 
-  // Start is called before the first frame update
-  protected void Start() {
+    
+    // Start is called before the first frame update
+    protected void Start() {
     spawnPool = GetComponent<SpawnPool>();
     player = GameObject.Find("Player").gameObject;
     uiManager = GameObject.FindObjectOfType<UIManagerScript>();
@@ -153,14 +158,17 @@ public class BattleMainManagerScript : MonoBehaviour {
       return;
     }
     var config = enemyConfigs.ChooseRandomValue();
-    var newEnemy = spawnPool.GetUnit(config.ImageName);
-    var verticalSize = Camera.main.orthographicSize;
-    var horizontalSize = verticalSize * Screen.width / Screen.height;
-    var distance = Mathf.Sqrt(Mathf.Pow(verticalSize, 2) + Mathf.Pow(horizontalSize, 2)) + 0.1f;
-    newEnemy.transform.position = UnityEngine.Random.insideUnitCircle.normalized * distance;
-    newEnemy.Init(config, LevelBasedOnTime());
-    enemies[newEnemy.Identifier] = newEnemy;
-    timeToNextSpawn = TIME_BETWEEN_SPAWNS;
+        foreach(EnemyConfig enemy in config)
+        {
+            var newEnemy = spawnPool.GetUnit(enemy.ImageName);
+            var verticalSize = Camera.main.orthographicSize;
+            var horizontalSize = verticalSize * Screen.width / Screen.height;
+            var distance = Mathf.Sqrt(Mathf.Pow(verticalSize, 2) + Mathf.Pow(horizontalSize, 2)) + 0.1f;
+            newEnemy.transform.position = UnityEngine.Random.insideUnitCircle.normalized * distance;
+            newEnemy.Init(enemy, LevelBasedOnTime());
+            enemies[newEnemy.Identifier] = newEnemy;
+            timeToNextSpawn = TIME_BETWEEN_SPAWNS;
+        }
   }
 
   private void MoveEnemies() {
